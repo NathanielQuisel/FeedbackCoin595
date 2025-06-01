@@ -37,8 +37,8 @@ const CreateClass: React.FC = () => {
   
     try {
       // 🌳 Step 1: Build Merkle Tree
-      const leaves = rawKeys.map((key) => keccak256(key.replace(/^0x/, "")));
-      const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+      // const leaves = rawKeys.map((key) => keccak256(key.replace(/^0x/, "")));
+      const tree = new MerkleTree(rawKeys, keccak256, { sortPairs: true });
       const root = tree.getHexRoot();
       setMerkleRoot(root);
   
@@ -64,17 +64,17 @@ const CreateClass: React.FC = () => {
       const provider = new BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
   
-      const factory = new ContractFactory(
-        FeedbackCoinJson.abi,
-        FeedbackCoinJson.bytecode,
-        signer
-      );
+      // const factory = new ContractFactory(
+      //   FeedbackCoinJson.abi,
+      //   FeedbackCoinJson.bytecode,
+      //   signer
+      // );
   
-      const contract = await factory.deploy(root, pubKeyB64);
-      await contract.waitForDeployment();
+      // const contract = await factory.deploy(root, pubKeyB64);
+      // await contract.waitForDeployment();
 
-      const contractAddress = await contract.getAddress(); 
-      console.log("Deployed to:", contractAddress);
+      // const contractAddress = await contract.getAddress(); 
+      // console.log("Deployed to:", contractAddress);
 
   
       // ✅ Step 4: Store to backend (optional)
@@ -84,8 +84,8 @@ const CreateClass: React.FC = () => {
         body: JSON.stringify({
           className,
           root,
-          leaves: leaves.map((leaf) => "0x" + leaf.toString()),
-          creatorAddress: account,
+          leaves: rawKeys, //.map((leaf) => "0x" + leaf.toString()),
+          creatorAddress: root, //changed from contractAddress
         }),
       });
   
@@ -95,12 +95,12 @@ const CreateClass: React.FC = () => {
         body: JSON.stringify({
           address: account,
           className,
-          contractAddress: contractAddress,
+          contractAddress: root, //changed from contractAddress
           role: "teacher",
         }),
       });
-  
-      alert(`Class created!\n\nContract address: ${contractAddress}\n\nDecryption Private Key:\n${privKeyB64}`);
+      // changed from contractAddress
+      alert(`Class created!\n\nContract address: ${root}\n\nDecryption Private Key:\n${privKeyB64}`);
     } catch (err) {
       console.error("Error creating class:", err);
       alert("Error creating class. Check console.");

@@ -3,12 +3,13 @@ import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ethers } from "ethers";
 import { keccak256 } from "js-sha3";
+import FeedbackCoinJson from "./FeedbackCoin.json";
 
 // Define your contract ABI
 //WILL NEED TO CHANGE TO MATCH THE ACTUAL FUNCTION HEADER
-const contractABI = [
-    "function submitDailyPassword(string memory password) public"
-];
+// const contractABI = [
+//     "function submitDailyPassword(string memory password) public"
+// ];
 
 const EnterDailyPassword: React.FC = () => {
     const [password, setPassword] = useState("");
@@ -30,7 +31,7 @@ const EnterDailyPassword: React.FC = () => {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const hashedPassword = keccak256(password);
-        const contract = new ethers.Contract(classAddress, contractABI, signer);
+        const contract = new ethers.Contract(classAddress, FeedbackCoinJson.abi, signer);
   
         const tx = await contract.submitDailyPassword(hashedPassword);
         await tx.wait();

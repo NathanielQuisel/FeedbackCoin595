@@ -53,13 +53,14 @@ const JoinClass: React.FC = () => {
         return;
       }
       
-      const leafHex = inputCommitment.toLowerCase();
+      // const leafHex = "0x" + keccak256(inputCommitment.replace(/^0x/, ""));
+      // alert(leafHex);
       
-      if (!matchedTree.leaves.includes(leafHex)) {
+      if (!matchedTree.leaves.includes(inputCommitment)) {
         setStatus("❌ Commitment hash not found in the Merkle tree.");
         return;
       }      
-      alert("what is up")
+      alert("what is up");
 
     //   // Step 6: Reconstruct the Merkle tree to generate proof
     //   const leavesBuffers = matchedTree.leaves.map((leaf: string) => Buffer.from(leaf.slice(2), "hex"));

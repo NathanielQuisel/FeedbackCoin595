@@ -14,6 +14,58 @@ app.use(bodyParser.json());
 
 const userClasses = {}; // In-memory { [address]: [{ id, name, role }] }
 
+const { ethers } = require("ethers");
+const FeedbackCoinJson = require("./FeedbackCoin.json"); // Adjust path if needed
+
+// NEED to change all of this to my wallet's information and that it is going to be MetaMask
+const RELAYER_PRIVATE_KEY = process.env.RELAYER_PRIVATE_KEY;
+const provider = new ethers.JsonRpcProvider("https://your-eth-node-url"); // or use Alchemy/Infura
+const relayerWallet = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
+
+app.post("/api/relay-collect", async (req, res) => {
+  const { password, oldCommitment, newCommitment, proof, newRoot, contractAddress } = req.body;
+
+  try {
+    const contract = new ethers.Contract(contractAddress, FeedbackCoinJson.abi, relayerWallet);
+    
+    const tx = await contract.claim(
+      password,
+      proof,
+      oldCommitment,
+      newCommitment,
+      newRoot
+    );
+
+    await tx.wait();
+    res.status(200).json({ message: "Success", txHash: tx.hash });
+  } catch (err) {
+    console.error("Relayer error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/relay-send-feedback", async (req, res) => {
+  const { message, oldCommitment, newCommitment, proof, newRoot, contractAddress } = req.body;
+
+  try {
+    const contract = new ethers.Contract(contractAddress, FeedbackCoinJson.abi, relayerWallet);
+    
+    const tx = await contract.sendFeedback(
+      message,
+      proof,
+      oldCommitment,
+      newCommitment,
+      newRoot
+    );
+
+    await tx.wait();
+    res.status(200).json({ message: "Success", txHash: tx.hash });
+  } catch (err) {
+    console.error("Relayer error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post("/api/add-user-class", (req, res) => {
     const { address, className, contractAddress, role } = req.body;
 
