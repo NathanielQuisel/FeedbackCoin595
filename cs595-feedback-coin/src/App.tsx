@@ -9,6 +9,8 @@ import JoinClass from './JoinClass';
 import SubmitFeedback from "./SubmitFeedback";
 import CollectCoin from "./CollectCoin";
 import EnterDailyPassword from "./EnterDailyPassword";
+import ViewFeedback from "./ViewFeedback";
+
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
         <Route path="/submit-feedback" element={<SubmitFeedback />} />
         <Route path="/collect-coin" element={<CollectCoin />} />
         <Route path="/enter-daily-password" element={<EnterDailyPassword />} />
+        <Route path="/view-feedback" element={<ViewFeedback />} />
       </Routes>
     </Router>
   );

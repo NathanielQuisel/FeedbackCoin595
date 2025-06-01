@@ -45,7 +45,16 @@ const Dashboard: React.FC = () => {
 
           {cls.role === "teacher" ? (
             <>
-              <button style={buttonStyle}>View Feedback</button>
+              <button
+                      style={buttonStyle}
+                      onClick={() =>
+                        navigate("/view-feedback", {
+                          state: { contractAddress: cls.contractAddress },
+                        })
+                      }
+                    >
+                      View Feedback
+                    </button>
               <button
                     style={buttonStyle}
                     onClick={() => navigate("/enter-daily-password", { state: { classAddress: cls.contractAddress } })}
