@@ -43,14 +43,12 @@ contract FeedbackCoin {
     /// @param oldCommitment Identity commitment of student before claim
     /// @param newCommitment New identity commitment to transition to
     /// @param newRoot Merkle root that contains `newCommitment`
-    /// @param newProof Merkle proof that proves `newCommitment` is in `newRoot`
     function claim(
         string memory password,
         bytes32[] calldata classProof,
         bytes32 oldCommitment,
         bytes32 newCommitment,
-        bytes32 newRoot,
-        bytes32[] calldata newProof
+        bytes32 newRoot
     ) external {
 
         bytes32 hashedOldCommitment = keccak256(abi.encodePacked(oldCommitment));
@@ -63,7 +61,7 @@ contract FeedbackCoin {
 
         // Verify the new commitment is in the new Merkle root
         // bytes32 newLeaf = keccak256(abi.encodePacked(newCommitment));
-        require(MerkleProof.verify(newProof, newRoot, newCommitment), "Invalid new commitment proof");
+        require(MerkleProof.verify(classProof, newRoot, newCommitment), "Invalid new commitment proof");
 
         lastClaimedDay[newCommitment] = currentDay;
         classRoot = newRoot;
@@ -82,15 +80,14 @@ contract FeedbackCoin {
         bytes32[] calldata classProof,
         bytes32 oldCommitment,
         bytes32 newCommitment,
-        bytes32 newRoot,
-        bytes32[] calldata newProof
+        bytes32 newRoot
     ) external {
         // Ensure user is in class
         bytes32 hashedOldCommitment = keccak256(abi.encodePacked(oldCommitment));
         require(MerkleProof.verify(classProof, classRoot, hashedOldCommitment), "Not in class");
 
         // Ensure new commitment is valid in new Merkle root
-        require(MerkleProof.verify(newProof, newRoot, newCommitment), "Invalid new commitment proof");
+        require(MerkleProof.verify(classProof, newRoot, newCommitment), "Invalid new commitment proof");
 
         uint256 oldBalance = balances[hashedOldCommitment];
         require(oldBalance >= 1, "Insufficient balance");
