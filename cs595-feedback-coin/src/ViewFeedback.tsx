@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ethers } from "ethers";
-import CryptoJS from "crypto-js"; // Make sure to install with `npm install crypto-js`
+// import CryptoJS from "crypto-js"; // Make sure to install with `npm install crypto-js`
 import FeedbackCoinJson from "./FeedbackCoin.json";
 
 const ViewFeedback: React.FC = () => {
@@ -15,50 +15,52 @@ const ViewFeedback: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleRetrieve = async () => {
-    if (!contractAddress || !secretKey) {
-      setError("Contract address or decryption key missing.");
+    if (!contractAddress) {
+      setError("Contract address missing.");
       return;
     }
-
+  
     setLoading(true);
     setError(null);
-
+  
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
+      const userAddress = await signer.getAddress();
+  
       const contract = new ethers.Contract(
         contractAddress,
         FeedbackCoinJson.abi,
         signer
       );
-
-      const feedbackCount = await contract.getFeedbackCount();
-      const encryptedFeedbacks = [];
-
-      for (let i = 0; i < feedbackCount; i++) {
-        const fb = await contract.getFeedback(i); // Assume this returns an encrypted string
-        encryptedFeedbacks.push(fb);
-      }
-
-      const decrypted = encryptedFeedbacks.map((cipherText) => {
-        //probably need to do a different form of decryption
-        try {
-          const bytes = CryptoJS.AES.decrypt(cipherText, secretKey);
-          const originalText = bytes.toString(CryptoJS.enc.Utf8);
-          return originalText || "[Decryption failed]";
-        } catch (err) {
-          return "[Decryption error]";
-        }
-      });
-
+  
+      const encryptedFeedbacks: string[] = await contract.feedbackCiphertexts();
+  
+      const decrypted: string[] = await Promise.all(
+        encryptedFeedbacks.map(async (cipherText: string) => {
+          try {
+            const decrypted = await window.ethereum.request({
+              method: "eth_decrypt",
+              params: [cipherText, userAddress],
+            });
+            const parsed = JSON.parse(decrypted);
+            return parsed.message || "[Empty message]";
+          } catch (err) {
+            console.warn("Decryption failed for a message:", err);
+            return "[Decryption failed]";
+          }
+        })
+      );
+  
       setDecryptedFeedback(decrypted);
     } catch (err) {
       console.error("Error retrieving or decrypting feedback:", err);
-      setError("Error fetching or decrypting feedback. Check the key and try again.");
+      setError("Error fetching or decrypting feedback.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   if (!contractAddress) {
     return <p>Error: No contract address provided.</p>;

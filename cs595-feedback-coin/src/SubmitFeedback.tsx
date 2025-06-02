@@ -42,7 +42,7 @@ const SubmitFeedback: React.FC = () => {
       const contract = new ethers.Contract(contractAddress, FeedbackCoinJson.abi, signer);
 
       // 2. Fetch Merkle root from contract
-      const contractRoot = await contract.merkleRoot(); // might need to change this to the proper thing
+      const contractRoot = await contract.classRoot(); // might need to change this to the proper thing
 
       // 3. Fetch Merkle tree data from backend
       const res = await fetch(`http://localhost:3001/api/get-tree/${contractRoot}`);
@@ -72,7 +72,7 @@ const SubmitFeedback: React.FC = () => {
       // const signature = await signer.signMessage(feedback);
 
       // 6. Encrypt the message
-      const publicKey = await contract.encryptKey(); // Assumed function
+      const publicKey = await contract.encryptionPublicKey(); // Assumed function
       const encrypted = await window.ethereum.request({
         method: "eth_encrypt",
         params: [publicKey, JSON.stringify({ message: feedback })],

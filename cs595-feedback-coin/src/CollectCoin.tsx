@@ -59,7 +59,7 @@ const handleSubmit = async () => {
   
       // 3. Get contract
       const contract = new ethers.Contract(contractAddress, FeedbackCoinJson.abi, signer);
-      const contractRoot = await contract.merkleRoot(); // might need to change this to the proper thing
+      const contractRoot = await contract.classRoot(); // might need to change this to the proper thing
   
       // 4. Get tree from backend
       const res = await fetch(`http://localhost:3001/api/get-tree/${contractRoot}`);
