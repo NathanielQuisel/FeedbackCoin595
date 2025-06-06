@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-// import { ethers } from "ethers";
-// import { MerkleTree } from "merkletreejs";
 import { keccak256 } from "js-sha3";
 import { useClassContext } from "./ClassContext";
+import { ethers } from "ethers";
 
 const JoinClass: React.FC = () => {
   const [contractAddress, setContractAddress] = useState("");
@@ -20,63 +19,37 @@ const JoinClass: React.FC = () => {
     setStatus(null);
     setProof(null);
 
-    // if (!ethers.isAddress(contractAddress)) {
-    //   setStatus("❌ Invalid Ethereum address.");
-    //   return;
-    // }
-
     try {
-      
-      
-      // Step 1: Get contract code to ensure it exists
-    //   const provider = new ethers.BrowserProvider(window.ethereum);
-    //   const code = await provider.getCode(contractAddress);
-    //   if (code === "0x") {
-    //     setStatus("❌ No contract found at this address.");
-    //     return;
-    //   }
-        
-      // Step 2: Fetch all Merkle trees from the backend
+      // 1. Fetch all Merkle trees from the backend
       const res = await fetch("http://localhost:3001/api/trees");
       const trees = await res.json();
       
-      // Step 3: Find Merkle tree matching the given contract address
-      const matchedTree = trees.find((t: any) => t.root.toLowerCase() === contractAddress.toLowerCase());
+      // 2. Find Merkle tree matching the given contract address
+      const matchedTree = trees.find(
+        (t: any) => t.classAddress?.toLowerCase() === contractAddress.toLowerCase()
+      );
       if (!matchedTree) {
         setStatus("❌ No Merkle tree found for this contract address.");
         return;
       }
 
-      // Step 4: Get user address from MetaMask
+      // 3. Make some simple error checks
       if (!inputCommitment.startsWith("0x") || inputCommitment.length !== 66) {
         setStatus("❌ Please enter a valid 32-byte commitment hash (0x-prefixed).");
         return;
       }
       
-      // const leafHex = "0x" + keccak256(inputCommitment.replace(/^0x/, ""));
-      // alert(leafHex);
-      
       if (!matchedTree.leaves.includes(inputCommitment)) {
         setStatus("❌ Commitment hash not found in the Merkle tree.");
         return;
       }      
-      alert("what is up");
-
-    //   // Step 6: Reconstruct the Merkle tree to generate proof
-    //   const leavesBuffers = matchedTree.leaves.map((leaf: string) => Buffer.from(leaf.slice(2), "hex"));
-    //   const merkleTree = new MerkleTree(leavesBuffers, keccak256, { sortPairs: true });
-
-    //   const merkleProof = merkleTree.getHexProof(userHash);
-    //   setProof(merkleProof);
-
-    //   setStatus("✅ Joined class and generated Merkle proof.");
-    //   console.log("Merkle Proof:", merkleProof);
 
       if (!className.trim()) {
         setStatus("❌ Please enter a class name.");
         return;
       }
 
+      //4. Update the backend
       addJoinedClass(className, contractAddress, "student");
       
     } catch (err) {
@@ -86,13 +59,14 @@ const JoinClass: React.FC = () => {
     }
   };
 
+  // used to generate new public/private commitments for students
   const generateCommitment = () => {
     const array = new Uint32Array(8);
     window.crypto.getRandomValues(array);
     const secretBigInt = BigInt("0x" + Array.from(array).map(x => x.toString(16).padStart(8, "0")).join(""));
     const secretHex = "0x" + secretBigInt.toString(16);
   
-    const hash = keccak256(secretHex); // REPLACE this with Poseidon if using Semaphore correctly
+    const hash = keccak256(ethers.getBytes(secretHex));
     const hashHex = "0x" + hash;
   
     setSecret(secretHex);
