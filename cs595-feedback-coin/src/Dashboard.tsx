@@ -1,26 +1,10 @@
 // src/Dashboard.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useMetaMask } from "./MetaMaskContext";
 import { useClassContext } from "./ClassContext";
-
-type ClassInfo = {
-  id: number;
-  name: string;
-  role: "teacher" | "student";
-};
-
-// Sample/mock data for now
-// const mockClasses: ClassInfo[] = [
-//   { id: 1, name: "Blockchain 101", role: "teacher" },
-//   { id: 2, name: "ZK Proofs", role: "student" },
-//   { id: 3, name: "Smart Contract Security", role: "teacher" },
-//   { id: 4, name: "Solidity Bootcamp", role: "student" },
-// ];
 
 const Dashboard: React.FC = () => {
   const { classes } = useClassContext();
-  const { account } = useMetaMask();
   const navigate = useNavigate();
 
   return (
@@ -29,58 +13,71 @@ const Dashboard: React.FC = () => {
 
       <h2 style={{ marginTop: "2rem" }}>Your Classes</h2>
       {classes.map((cls) => (
-        <div
-          key={cls.id}
-          style={{
-            border: "1px solid #ccc",
-            padding: "1rem",
-            margin: "1rem auto",
-            width: "60%",
-            borderRadius: "10px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-          }}
-        >
-          <h3>{cls.name}</h3>
-          <p>You are a {cls.role}</p>
+  <div
+    key={cls.id}
+    style={{
+      border: "1px solid #ccc",
+      padding: "1rem",
+      margin: "1rem auto",
+      width: "60%",
+      borderRadius: "10px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    }}
+  >
+    <h3>{cls.name}</h3>
+    <p>You are a {cls.role}</p>
+    <p><strong>Contract Address:</strong> {cls.contractAddress}</p>
 
-          {cls.role === "teacher" ? (
-            <>
-              <button
-                      style={buttonStyle}
-                      onClick={() =>
-                        navigate("/view-feedback", {
-                          state: { contractAddress: cls.contractAddress },
-                        })
-                      }
-                    >
-                      View Feedback
-                    </button>
-              <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/enter-daily-password", { state: { classAddress: cls.contractAddress } })}
-                    >
-                    Enter Daily Password
-                    </button>
-            </>
-          ) : (
-            <>
-              <button
-                style={buttonStyle}
-                onClick={() => navigate("/collect-coin", { state: { contractAddress: cls.contractAddress } })}
-                >
-                Collect Coin
-                </button>
-            <button
-                style={buttonStyle}
-                onClick={() => navigate("/submit-feedback", { state: { contractAddress: cls.contractAddress } })}
-                >
-                Submit Feedback
-                </button>
+    {cls.role === "teacher" ? (
+        <>
+          <button
+            style={buttonStyle}
+            onClick={() =>
+              navigate("/view-feedback", {
+                state: { contractAddress: cls.contractAddress },
+              })
+            }
+          >
+            View Feedback
+          </button>
+          <button
+            style={buttonStyle}
+            onClick={() =>
+              navigate("/enter-daily-password", {
+                state: { classAddress: cls.contractAddress },
+              })
+            }
+          >
+            Enter Daily Password
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            style={buttonStyle}
+            onClick={() =>
+              navigate("/collect-coin", {
+                state: { contractAddress: cls.contractAddress },
+              })
+            }
+          >
+            Collect Coin
+          </button>
+          <button
+            style={buttonStyle}
+            onClick={() =>
+              navigate("/submit-feedback", {
+                state: { contractAddress: cls.contractAddress },
+              })
+            }
+          >
+            Submit Feedback
+          </button>
+        </>
+      )}
+    </div>
+  ))}
 
-            </>
-          )}
-        </div>
-      ))}
 
         <button
         style={{ ...buttonStyle, marginTop: "2rem" }}

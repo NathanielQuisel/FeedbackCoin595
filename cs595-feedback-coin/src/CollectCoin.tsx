@@ -5,18 +5,13 @@ import { keccak256 } from "js-sha3";
 import { MerkleTree } from "merkletreejs";
 import FeedbackCoinJson from "./FeedbackCoin.json";
 
-//NEED TO CHANGE TO ACTUAL FUNCTION HEADER
-// const contractABI = ["/* insert your contract ABI here */"];
-
 const CollectCoin: React.FC = () => {
   const [password, setPassword] = useState("");
   const [oldCommitment, setOldCommitment] = useState("");
   const location = useLocation();
   const contractAddress = location.state?.contractAddress;
-  //still need to display the new secret at the bottom after the transaction is successful
   const [secret, setSecret] = useState<string | null>(null);
-  const [commitment, setCommitment] = useState<string | null>(null);
-
+  const [showSecret, setShowSecret] = useState(false);
   
 const handleSubmit = async () => {
 
@@ -31,69 +26,56 @@ const handleSubmit = async () => {
     }
 
     //prepare the new S/P commitment
-    // const generateCommitment = () => {
     const array = new Uint32Array(8);
     window.crypto.getRandomValues(array);
     const secretBigInt = BigInt("0x" + Array.from(array).map(x => x.toString(16).padStart(8, "0")).join(""));
     const secretHex = "0x" + secretBigInt.toString(16);
   
-    const hash = keccak256(secretHex); // REPLACE this with Poseidon if using Semaphore correctly
+    const hash = keccak256(ethers.getBytes(secretHex));
     const hashHex = "0x" + hash;
   
     setSecret(secretHex);
-    setCommitment(hashHex);
-
-    const newCommitmentBuf = Buffer.from(hashHex.replace(/^0x/, ""), "hex");
-  // };
   
     try {
       // 1. Connect to MetaMask
-      //SHOULD probably change this to use the metamaskContext file to be consistent across files
       const provider = new ethers.BrowserProvider(window.ethereum); 
       const signer = await provider.getSigner();
-      // const userAddress = await signer.getAddress();
-      // const hashedAddress = keccak256(userAddress.replace(/^0x/, ""));
   
-      // 2. Hash the password
-      const hashedPassword = keccak256(password);
-  
-      // 3. Get contract
+      // 2. Get contract
       const contract = new ethers.Contract(contractAddress, FeedbackCoinJson.abi, signer);
       const contractRoot = await contract.classRoot(); // might need to change this to the proper thing
   
-      // 4. Get tree from backend
+      // 3. Get tree from backend
       const res = await fetch(`http://localhost:3001/api/get-tree/${contractRoot}`);
       const data = await res.json();
-  
-      const leaves: Buffer[] = data.leaves.map((leaf: string) =>
-        Buffer.from(leaf.replace(/^0x/, ""), "hex")
-      );      // const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
-      const oldCommitmentBuf = Buffer.from(oldCommitment.replace(/^0x/, ""), "hex");
-  
-      // 6. Replace old commitment
-      const index = leaves.findIndex(leaf => leaf.equals(oldCommitmentBuf));
+      const leaves = data.leaves;
+      const hashedOldCommit = "0x" + keccak256(ethers.getBytes(oldCommitment));
+      
+      // 5. Replace old commitment
+      const index = leaves.findIndex((leaf:string) => leaf === hashedOldCommit);
       if (index === -1) {
         alert("Old commitment not found in tree.");
         return;
       }
-      leaves[index] = newCommitmentBuf;
+      leaves[index] = hashHex;
 
-      // 7. Rebuild tree
+      // 6. Rebuild tree
       const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
       const newRoot = "0x" + tree.getRoot().toString("hex");
-      const proof = tree.getHexProof(newCommitmentBuf);
+      const proof = tree.getHexProof(hashHex); 
 
-      // 8. Submit to contract
+      // 7. Submit to node.js backend which submits to contract
       const response = await fetch("http://localhost:3001/api/relay-collect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           password,
           oldCommitment,
-          newCommitment: commitment,
+          newCommitment: hashHex,
           proof,
           newRoot,
           contractAddress,
+          index,
         }),
       });
       
@@ -103,10 +85,9 @@ const handleSubmit = async () => {
         alert(`✅ Coin collected via relayer! Tx: ${result.txHash}`);
         setPassword("");
         setOldCommitment("");
-        setCommitment(null);
-        setSecret(null);
       } else {
         alert("❌ Failed to collect coin via relayer: " + result.error);
+        console.error("failed",result.error);
       }      
     } catch (err) {
       console.error("Error collecting coin:", err);
@@ -154,6 +135,38 @@ const handleSubmit = async () => {
       >
         Submit
       </button>
+      {secret && (
+  <div style={{ marginTop: "1.5rem" }}>
+    <button
+      onClick={() => setShowSecret((prev) => !prev)}
+      style={{
+        padding: "0.5rem 1rem",
+        fontSize: "1rem",
+        cursor: "pointer",
+        marginBottom: "1rem",
+      }}
+    >
+      {showSecret ? "Hide Secret" : "Show Secret"}
+    </button>
+
+    {showSecret && (
+      <input
+        type="text"
+        readOnly
+        value={secret}
+        style={{
+          width: "80%",
+          padding: "0.8rem",
+          fontSize: "1rem",
+          backgroundColor: "#f0f0f0",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+        }}
+      />
+    )}
+  </div>
+)}
+
     </div>
   );
 };
