@@ -5,11 +5,6 @@ import { ethers } from "ethers";
 import { keccak256 } from "js-sha3";
 import FeedbackCoinJson from "./FeedbackCoin.json";
 
-// Define your contract ABI
-//WILL NEED TO CHANGE TO MATCH THE ACTUAL FUNCTION HEADER
-// const contractABI = [
-//     "function submitDailyPassword(string memory password) public"
-// ];
 
 const EnterDailyPassword: React.FC = () => {
     const [password, setPassword] = useState("");
@@ -30,14 +25,14 @@ const EnterDailyPassword: React.FC = () => {
       try {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
-        const hashedPassword = keccak256(password);
+        const hashedPassword = ethers.keccak256(ethers.toUtf8Bytes(password));
         const contract = new ethers.Contract(classAddress, FeedbackCoinJson.abi, signer);
-  
-        const tx = await contract.submitDailyPassword(hashedPassword);
+        const tx = await contract.setDailyPassword(hashedPassword);
         await tx.wait();
   
         alert("✅ Password submitted to smart contract!");
       } catch (err) {
+        alert(err)
         console.error("Contract call failed:", err);
         alert("❌ Failed to submit password.");
       }

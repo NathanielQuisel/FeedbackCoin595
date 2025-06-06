@@ -32,6 +32,10 @@ contract FeedbackCoin {
         _;
     }
 
+    function getAllFeedback() public view returns (string[] memory) {
+        return feedbackCiphertexts;
+    }
+
     function setDailyPassword(bytes32 passwordHash) external onlyOwner {
         currentDay += 1;
         currentPasswordHash = passwordHash;
