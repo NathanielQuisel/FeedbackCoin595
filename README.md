@@ -6,31 +6,29 @@ Title: Anonymous Feedback
 Team: Nathaniel Quisel
 
 Abstract:
-Currently, there is no system for students to anonymously and consistently provide feedback for their professors. At BU, there is an end of term evaluation, but feedback on individual lectures would allow the teacher to better understand what could be improved now. Also, students are often wary that anonymous feedback systems are anonymous, which leads to less honest opinions. Blockchain technologies guarantee anonymity, and they allow for a voting system to prevent inappropriate messages. Students should be honest, but not hateful. All teachers and some students who have accrued trust should be able to vote to ban users for egregious messages.
+Currently, there is no system for students to anonymously and consistently provide feedback for their professors. At BU, there is an end of term evaluation, but feedback on individual lectures would allow the teacher to better understand what could be improved now. Also, students are often wary that anonymous feedback systems are anonymous, which leads to less honest opinions. Blockchain technologies guarantee anonymity through a relayer system, where students metamask accounts are not used to sign transactions.
 
 Background:
-Blockchain systems provide a good framework to provide anonymity. Once an account has been created, as long as no identity information was leaked, the user’s identity is simply their public key.
+Blockchain systems provide a good framework to provide anonymity. Once an account has been created, as long as no identity information was leaked, the user’s identity is simply their public key. Then using Alchemy as a relayer within the node.js backend, the MetaMask account stored in the .env file will be used to sign all student transactions. Thus, a student's MetaMask information would not be exposed on the blockchain within these transactions.
 
 Project objectives:
-Create a user interface for a student or professor to create an account by providing proof they are affiliated with the university. Teacher accounts can create QRcodes for students to scan and gain FeedbackCoin. Students can spend FeedbackCoin to send encrypted messages. Teachers can initiate a ban vote if they deem a message is inappropriate. Teachers and select students can vote on banning that user.
+Create a user interface for a student or professor to login with their MetaMask account, so the system will remember which classes they have joined. Teacher accounts can enter passwords as frequently as they like, and students can enter each password once to gain one balance for that clas. Students can then spend their balance and submit anonymous and encrypted feedback to the teachers. It will cost one balance for each feedback submission.
 
 Methodology:
-Create the FeedbackCoin that has all listed capabilities. Through the Ethereum testnet, store messages that students have sent to teachers. Have a system for students and teachers to create anonymous accounts. 
+Create the FeedbackCoin that has all listed capabilities. Through the Ethereum Sepolia testnet, store messages that students have sent to teachers.
 
 Scope and deliverables:
-A working demo of a user interface for students and teachers to create accounts. Prove that the student accounts are anonymous and cannot be tracked back to individual students. Zero-knowledge proofs will be used to prove students/teachers are actually students/teachers at that university. At the end of each day, the hashes of all feedback messages will be stored in a merkle tree, and teachers will receive the index and content of the messages they received. They can prove they know a message from the merkle tree to initiate a vote to ban a user.
-Potentially out of scope would be the voting to ban process. Depending on time, this might be deemed out of scope.
+Each contract will store a merkle root that represents all of the students in this class. The merkle leaves are publicly available on the node.js backend, so students can make merkle proofs. The leaves of the merkle tree will be hashes of randomly generated private commitments. The student will keep track of what position they are in merkle tree and the private commitment they are assigned. This will serve as their identity to ensure anonymity. When a student uses either of the two submit buttons in their UI, they will receive a new private commitment that will become their new identity. The previous identity will be exposed to complete the transaction, so a new one must be generated. The stored merkle tree both in the node.js and the smart contract will be updated accordingly. 
+
+Out of scope is all front-running attacks that could be performed against student initiated transactions.
 
 Evaluation:
-The project will be a success if the user interface allows students to easily create accounts, receive coins from a QRcode/link, and spend that coin to send feedback messages. This also requires the user interface to allow teachers to create an account and create QRcodes/links for students to use. Teachers should also be able to view their received messages in the UI. 
+The project will be a success if the user interface allows students to easily login, increase their balance from a password, and spend that balance to send feedback messages. This also requires the user interface to allow teachers to login and enter passwords for students to use. Teachers should also be able to view their received messages in the UI by entering their private decryption key. 
 
 Resources:
-I will be using Ethereum testnet to create the necessary smart contracts and I will be using React for the frontend UI.
+I will be using Ethereum Sepolia testnet to create the necessary smart contracts and I will be using React for the frontend UI. I will use Node.js for the backend.
 
 Challenges:
 I am inexperienced with using React to create user interfaces, and creating a system that both verifies a student/teacher is a student/teacher when creating an account and does not leak the identity of the user seems difficult.
-
-Ethics:
-If students and teachers are allowed to vote to ban users, it seems hard to ensure that only bad messages are voted out. However, without this feature it seems impossible to guarantee teachers would not be harassed. 
 
 
